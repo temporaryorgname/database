@@ -2,12 +2,16 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from sqlalchemy import Column, Integer, String, Float, Date, Time, Boolean
+from sqlalchemy import Column, Integer, String, Float, Date, Time, DateTime, Boolean, Enum
 
+import enum
 import datetime
 import os
 
 Base = declarative_base()
+def set_base(base):
+    global Base
+    Base = base
 
 def get_db_uri(config=None):
     if 'LOGS_DB_URI' in os.environ:
@@ -17,14 +21,27 @@ def get_db_uri(config=None):
     else:
         return 'postgresql://howardh:verysecurepassword@localhost:5432/howardh'
 
-def init_db(db_uri, pool_size=10, max_overflow=20):
-    print('Initialized DB at %s' % db_uri)
-    engine = create_engine(db_uri, convert_unicode=True, pool_size=pool_size, max_overflow=max_overflow)
-    db_session = scoped_session(sessionmaker(autocommit=False,
+engine = None
+Session = None
+def init_engine(db_uri, pool_size=10, max_overflow=20):
+    global engine, Session
+    if engine is None:
+        print('Initialized DB at %s' % db_uri)
+        engine = create_engine(db_uri, pool_size=pool_size, max_overflow=max_overflow)
+        if engine is None:
+            raise Exception('Failed to initalize engine at %s' % db_uri)
+        Session = scoped_session(sessionmaker(autocommit=False,
                                              autoflush=False,
                                              bind=engine))
-    Base.query = db_session.query_property()
-    return db_session
+        if Session is None:
+            raise Exception('Failed to create Session factory.')
+        Base.metadata.bind = engine
+    return engine
+
+def get_session(db_uri, pool_size=10, max_overflow=20):
+    engine = init_engine()
+    #Base.query = db_session.query_property()
+    return Session
 
 def cast_none(val, t):
     if val is None:
@@ -114,11 +131,11 @@ class Food(Base):
 class Photo(Base):
     __tablename__ = 'photo'
     id = Column(Integer, primary_key=True)
-    file_name = Column()
-    user_id = Column()
-    date = Column()
-    time = Column()
-    upload_time = Column()
+    file_name = Column(String)
+    user_id = Column(Integer)
+    date = Column(Date)
+    time = Column(Time)
+    upload_time = Column(DateTime)
     food_id = Column(Integer)
 
     def to_dict(self):
@@ -133,10 +150,10 @@ class Photo(Base):
 class Tag(Base):
     __tablename__ = 'tag'
     id = Column(Integer, primary_key=True)
-    user_id = Column()
-    parent_id = Column()
-    tag = Column()
-    description = Column()
+    user_id = Column(Integer)
+    parent_id = Column(Integer)
+    tag = Column(String)
+    description = Column(String)
 
     def to_dict(self):
         return {
@@ -172,11 +189,11 @@ class Tag(Base):
 class PhotoLabel(Base):
     __tablename__ = 'photo_label'
     id = Column(Integer, primary_key=True)
-    user_id = Column()
-    photo_id = Column()
-    tag_id = Column()
-    bounding_box = Column()
-    bounding_polygon = Column()
+    user_id = Column(Integer)
+    photo_id = Column(Integer)
+    tag_id = Column(Integer)
+    #bounding_box = Column(BOX)
+    #bounding_polygon = Column(POLYGON)
 
     def to_dict(self):
         return {
@@ -213,9 +230,9 @@ class PhotoLabel(Base):
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
-    email = Column()
-    password = Column()
-    verified_email = Column()
+    email = Column(String)
+    password = Column(String)
+    verified_email = Column(Boolean)
 
     active = False
     authenticated = False
@@ -232,22 +249,31 @@ class User(Base):
     def get_id(self):
         return self.id
 
+class GenderEnum(enum.Enum):
+    male = 1
+    female = 2
+    other = 3
+
+class WeightUnitsEnum(enum.Enum):
+    metric = 1
+    imperial = 2
+
 class UserProfile(Base):
     __tablename__ = 'user_profile'
     id = Column(Integer, primary_key=True)
-    display_name = Column()
-    last_activity = Column()
-    gender = Column()
+    display_name = Column(String)
+    last_activity = Column(DateTime)
+    gender = Column(Enum(GenderEnum))
 
-    prefered_units = Column()
+    prefered_units = Column(Enum(WeightUnitsEnum))
 
     target_weight = Column(Float)
     target_calories = Column(Float)
-    weight_goal = Column()
+    weight_goal = Column(String)
 
-    country = Column()
-    state = Column()
-    city = Column()
+    country = Column(String)
+    state = Column(String)
+    city = Column(String)
 
     active = False
     authenticated = False
@@ -295,10 +321,10 @@ class UserProfile(Base):
 class Bodyweight(Base):
     __tablename__ = 'body'
     id = Column(Integer, primary_key=True)
-    user_id = Column()
-    date = Column()
-    time = Column()
-    bodyweight = Column()
+    user_id = Column(Integer)
+    date = Column(Date)
+    time = Column(Time)
+    bodyweight = Column(Float)
 
     def to_dict(self):
         return {
