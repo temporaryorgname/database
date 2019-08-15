@@ -255,8 +255,8 @@ class GenderEnum(enum.Enum):
     other = 3
 
 class WeightUnitsEnum(enum.Enum):
-    metric = 1
-    imperial = 2
+    kgs = 1
+    lbs = 2
 
 class UserProfile(Base):
     __tablename__ = 'user_profile'
