@@ -254,9 +254,17 @@ class GenderEnum(enum.Enum):
     female = 2
     other = 3
 
-class WeightUnitsEnum(enum.Enum):
-    kgs = 1
-    lbs = 2
+WeightUnitsEnum = enum.Enum(
+        value='WeightUnitsEnum',
+        names=[
+            ('kgs',1),
+            ('kg',1),
+            ('metric',1),
+            ('lbs',2),
+            ('lb',2),
+            ('imperial',2)
+        ]
+)
 
 class UserProfile(Base):
     __tablename__ = 'user_profile'
