@@ -1,3 +1,4 @@
+import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -343,3 +344,10 @@ class Bodyweight(Base):
             "bodyweight": cast_none(self.bodyweight, float)
         }
 
+class ComputedData(Base):
+    __tablename__ = 'computed_data'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer)
+    last_updated = Column(DateTime)
+    key = Column(String)
+    value = Column(sqlalchemy.types.PickleType)
