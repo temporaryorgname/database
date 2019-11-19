@@ -344,6 +344,44 @@ class Bodyweight(Base):
             "bodyweight": cast_none(self.bodyweight, float)
         }
 
+class Exercise(Base):
+    __tablename__ = 'exercises' # FIXME: Should be singular
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    description = Column(String)
+
+    def to_dict(self):
+        return {
+            "id": self.id, 
+            "name": self.name,
+            "description": self.description
+        }
+
+class WorkoutSet(Base):
+    __tablename__ = 'workout_set'
+    id = Column(Integer, primary_key=True)
+    date = Column(Date)
+    user_id = Column(Integer)
+    exercise_id = Column(Integer)
+    parent_id = Column(Integer)
+    order = Column(Integer)
+    reps = Column(Integer)
+    duration = Column(Time)
+    tempo = Column(String)
+
+    def to_dict(self):
+        return {
+            "id": self.id, 
+            "date": str(self.date),
+            "user_id": self.user_id,
+            "exercise_id": self.exercise_id,
+            "parent_id": self.parent_id,
+            "order": self.order,
+            "reps": self.reps,
+            "duration": self.duration,
+            "tempo": self.tempo,
+        }
+
 class ComputedData(Base):
     __tablename__ = 'computed_data'
     id = Column(Integer, primary_key=True)
