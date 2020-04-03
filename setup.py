@@ -6,6 +6,6 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=[
         'sqlalchemy',
-        'psycopg2'
+        'psycopg2-binary'
     ]
 )
